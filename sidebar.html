@@ -98,31 +98,23 @@
     fetch(`https://api.chess.com/pub/club/${clubSlug}/members`)
       .then(res => res.json())
       .then(data => {
-        // Combine month and week arrays (both have joined field)
-        let combined = [];
-        if (data.month) combined = combined.concat(data.month);
-        if (data.week) combined = combined.concat(data.week);
-        // Remove possible duplicates by username and sort by joined (desc)
-        const membersMap = {};
-        for (const m of combined) {
-          if (!membersMap[m.username] || m.joined > membersMap[m.username].joined) {
-            membersMap[m.username] = m;
-          }
-        }
-        const unique = Object.values(membersMap);
-        unique.sort((a, b) => b.joined - a.joined); // newest first
-        const newArrivals = unique.slice(0, 3);
-
-        // All unique for total
-        let allMembers = [];
-        if (data.all_time) {
-          allMembers = Array.from(new Set(data.all_time.map(m => m.username)));
-        } else {
-          // fallback to month/week if all_time is not present
-          allMembers = Array.from(new Set(combined.map(m => m.username)));
-        }
+        // Get usernames from all_time (should be in join order, newest last)
+        const allMembers = data.all_time ? data.all_time.map(m => m.username) : [];
         document.getElementById('member-count').textContent =
           allMembers.length + " free folk";
-
-        // Always show the 3
-
+        // Always show the 3 latest members (newest first)
+        const newArrivals = allMembers.slice(-3).reverse();
+        document.getElementById('new-members').innerHTML =
+          newArrivals.length > 0
+            ? newArrivals.map(username =>
+                `<li><a href="https://www.chess.com/member/${username}" target="_blank">${username}</a></li>`
+              ).join('')
+            : "<li>No arrivals found</li>";
+      })
+      .catch(error => {
+        document.getElementById('member-count').textContent = "Unable to count the guests!";
+        document.getElementById('new-members').innerHTML = "<li>Unable to load arrivals</li>";
+      });
+  </script>
+</body>
+</html>
