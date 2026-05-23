@@ -93,28 +93,18 @@
     </div>
   </div>
   <script>
-    // Club slug for The Green Dragon Inn
     const clubSlug = "the-green-dragon-inn";
-    fetch(`https://api.chess.com/pub/club/${clubSlug}/members`)
-      .then(res => res.json())
-      .then(data => {
-        // Get usernames from all_time (should be in join order, newest last)
-        const allMembers = data.all_time ? data.all_time.map(m => m.username) : [];
-        document.getElementById('member-count').textContent =
-          allMembers.length + " free folk";
-        // Always show the 3 latest members (newest first)
-        const newArrivals = allMembers.slice(-3).reverse();
-        document.getElementById('new-members').innerHTML =
-          newArrivals.length > 0
-            ? newArrivals.map(username =>
-                `<li><a href="https://www.chess.com/member/${username}" target="_blank">${username}</a></li>`
-              ).join('')
-            : "<li>No arrivals found</li>";
-      })
-      .catch(error => {
-        document.getElementById('member-count').textContent = "Unable to count the guests!";
-        document.getElementById('new-members').innerHTML = "<li>Unable to load arrivals</li>";
-      });
-  </script>
-</body>
-</html>
+
+    function updateSidebar() {
+      fetch(`https://api.chess.com/pub/club/${clubSlug}/members`)
+        .then(res => res.json())
+        .then(data => {
+          // Total member count
+          const allMembers = data.all_time ? data.all_time.map(m => m.username) : [];
+          document.getElementById('member-count').textContent =
+            allMembers.length + " free folk";
+
+          // Show 3 newest: prefer month array with join time, fallback to all_time order
+          let recent = [];
+          if (data
+
